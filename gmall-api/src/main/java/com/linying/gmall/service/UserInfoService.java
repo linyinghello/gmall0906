@@ -1,4 +1,4 @@
-package com.linying.gmall.user.service;
+package com.linying.gmall.service;
 
 import com.linying.gmall.bean.UserInfo;
 
