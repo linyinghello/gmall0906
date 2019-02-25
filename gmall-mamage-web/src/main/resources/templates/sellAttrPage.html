@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="sellAttr_dd" class="easyui-dialog" title="编辑销售属性" style="width:400px;height:400px;"
+     data-options="buttons:'#sellAttr_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+    <br/><br/>
+    销售属性：<input id="sellAttrName" class="easyui-combobox"  data-options="
+    valueField:'id',
+    textField:'name',url:'getSaleAttr'"
+                style="width:200px">
+    <br/><br/>
+
+    <table id="sellAttrdg_av" class="easyui-datagrid" title="销售属性值列表"></table>
+
+</div>
+
+<div id="sellAttr_bb">
+    <a href="javascript:saveSellAttr();"class="easyui-linkbutton">保存</a>
+    <a  href="#" class="easyui-linkbutton" >关闭</a>
+</div>
+
+<script language="JavaScript">
+
+
+
+    $('#sellAttrdg_av').datagrid({
+
+        onDblClickRow:function(rowIndex, rowData){
+            $("#sellAttrdg_av").datagrid('beginEdit', rowIndex);
+            var saleAttrValueName = rowData.saleAttrValueName;
+            $("input.datagrid-editable-input").val(saleAttrValueName).bind("blur",function(evt){
+                $("#sellAttrdg_av").datagrid('endEdit',rowIndex);
+            });
+
+
+
+        },
+
+        columns:[[
+            {field:'id',title:'id',width:'20%'},
+            {field:'spuId',title:'spuId',width:'20%'},
+            {field:'saleAttrValueId',title:'销售属性值id',width:'22%'},
+            {field:'saleAttrValueName',title:'销售属性值名称',width:'38%',editor:{type: 'validatebox',
+                options:{required:true} }}
+
+        ]],
+        toolbar: [{
+            iconCls: 'icon-add',
+            text:'添加',
+            handler: function(){
+                $('#sellAttrdg_av').datagrid('appendRow',{
+                    id:"",
+                    spuId:"",
+                    saleAttrValueId:'',
+                    saleAttrValueName:"销售属性值名称"
+                });
+
+            }
+        },'-',{
+            iconCls: 'icon-remove',
+            text:'删除',
+            handler: function(){
+               var row =  $('#sellAttrdg_av').datagrid('getSelected');
+                var index =  $('#sellAttrdg_av').datagrid('getRowIndex',row);
+                $('#sellAttrdg_av').datagrid('deleteRow',index);
+
+
+            }
+        }]
+    });
+
+</script>
+</body>
+</html>

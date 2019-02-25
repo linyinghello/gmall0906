@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table id="spulist_dg" class="easyui-datagrid" title="spu列表"
+       data-options="toolbar:'#spulist_tb',url:'datagrid_data.json',fitColumns:true,singleSelect:true,method:'get'">
+    <thead>
+    <tr>
+        <th data-options="field:'id',width:80">商品ID</th>
+        <th data-options="field:'spuName',width:100">商品名称</th>
+        <th data-options="field:'description',width:100">商品描述</th>
+
+    </tr>
+    </thead>
+</table>
+<div id ="spulist_tb">
+    <a id="btn" href="javascript:addSpuInfo();" class="easyui-linkbutton" data-options="iconCls:'icon-add'">增加</a>
+    <a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit'">编辑</a>
+    <a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove'">删除</a>
+
+    <a id="btn" href="javascript:skuAdd();" class="easyui-linkbutton" data-options="iconCls:'icon-add'">增加sku</a>
+
+    <a id="btn" href="javascript:skuListskuList();" class="easyui-linkbutton" data-options="iconCls:'icon-search'">sku列表</a>
+    <br/><br/>
+    一级列表<select id="ctg1ForSpuList" data-options="valueField:'id',
+                textField:'name',url:'ctg1ForAttrList',
+                  onSelect: function(rec){
+                    var url = 'ctg2ForSpuList?ctg1='+rec.id;
+                     $('#ctg2ForSpuList').combobox('clear');
+                    $('#ctg2ForSpuList').combobox('reload', url);
+                 }"
+                class="easyui-combobox" name="dept" style="width:100px;"></select>
+
+    二级列表<select id="ctg2ForSpuList" data-options="valueField:'id',
+                textField:'name',
+                  onSelect: function(rec){
+                    var url = 'ctg3ForSpuList?ctg2='+rec.id;
+                     $('#ctg3ForSpuList').combobox('clear');
+                    $('#ctg3ForSpuList').combobox('reload', url);
+                 }"
+
+                class="easyui-combobox" name="dept" style="width:100px;"></select>
+    三级列表<select id="ctg3ForSpuList" data-options="
+     valueField:'id',textField:'name'"
+
+                class="easyui-combobox" name="dept" style="width:100px;"></select>
+    <a href="javascript:reloadSpuList();" class="easyui-linkbutton" data-options="iconCls:'icon-tip'">刷新属性列表</a>
+    <br/><br/>
+</div>
+
+<div id="spulist_dd" class="easyui-dialog" title="编辑spu" style="width:700px;height:520px;"
+     data-options="buttons:'#spulist_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+
+    <br/><br/>
+    spu名称：<input id="spuName" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:500px">
+    <br/><br/>
+    spu描述：<input id="description" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:500px;height:100px"/>
+    <br/><br/>
+    <table id="spulistdg_av" class="easyui-datagrid" title="商品图片列表"
+
+           data-options="singleSelect:true,method:'get',toolbar:'#spuImgTootbar'"></table>
+    <div id="spuImgTootbar" style="padding:5px;height:auto"  >
+        <div style="margin-bottom:5px">
+            <a href="#" id="spuImgAdd" class="easyui-linkbutton" iconCls="icon-add" plain="true">添加图片</a>
+            <a href="#" id="spuImgUploadBtn" class="easyui-linkbutton" iconCls="icon-save" plain="true" >图片上传</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>
+        </div>
+    </div>
+
+    <br/><br/>
+
+
+    <table id="sellspulistdg_av" class="easyui-datagrid" title="销售属性列表"></table>
+    <br/><br/>
+
+
+
+</div>
+
+<div id="spulist_bb">
+    <a href="javascript:saveSpu();"class="easyui-linkbutton">保存</a>
+    <a  href="#" class="easyui-linkbutton" >关闭</a>
+</div>
+
+<div th:include="sellAttrPage"></div>
+
+<div th:include="skuInfoPage"></div>
+
+<div th:include="skuListPage"></div>
+
+<script language="JavaScript">
+    function skuListskuList() {
+        $("#skulist_dlg").dialog("open");
+        var spuId = $("#spulist_dg").datagrid('getSelected').id;
+        initSkuListDatagrid(spuId);
+    }
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+    function  skuAdd() {
+        var catalogSpu3Id = $("#ctg3ForSpuList").combobox("getValue");
+
+        if(!catalogSpu3Id){
+            catalogSpu3Id = '9';
+        }
+
+
+        $('#skuInfo_dd').dialog('open');
+
+
+        var spuIdJson = {};
+        spuIdJson["catalog3Id"]=catalogSpu3Id;
+
+        $.post("getAttrList",spuIdJson,function(data){
+            $("#saveSkuInfoByAttr_av").empty();
+            $(data).each(function(i,attr){
+                var spanBegin = "<span attrId = "+attr.id+">";
+                var spanEnd = "</span>";
+                var attrName = attr.attrName;
+                var selectBegin = "<select>";
+                var attrValueList = attr.attrValueList;
+                var options = "";
+                var selectEnd = "</select>"
+
+                $(attrValueList).each(function(j,attrValue){
+                    var valueName =attrValue.valueName;
+                    var attrValueId = attrValue.id;
+                    var optionEnd = "</option>";
+                   var optionBegin = "<option value= "+attrValueId+">";
+                    options = options+optionBegin+valueName+optionEnd;
+                });
+                $("#saveSkuInfoByAttr_av").append(spanBegin+attrName+":"+selectBegin+options+selectEnd+spanEnd);
+
+
+
+            });
+        });
+
+        var spuId = $("#spulist_dg").datagrid('getSelected').id;
+
+
+
+        $.post("spuSaleAttrLists",{spuId:spuId},function(spuSaleAttrs){
+            alert(spuId);
+            $("#saveSkuInfoBySaleAttr_av").empty();
+            $(spuSaleAttrs).each(function(i,spuSaleAttr){
+                var saleAttrName = spuSaleAttr.saleAttrName;
+                var spanBegin = " <span  spuSaleAttrId='"+spuSaleAttr.saleAttrId+"' spuSaleAttrName='"+spuSaleAttr.saleAttrName+"'>";
+               var spanEnd = "</span>";
+               var selectBegin = "<select>";
+               var selectEnd = "</select>";
+               var options = "";
+
+               var spuSaleAttrValueList =spuSaleAttr.spuSaleAttrValueList ;
+
+               $(spuSaleAttrValueList).each(function(j,spuSaleAttrValue){
+
+                   var saleAttrValueName = spuSaleAttrValue.saleAttrValueName;
+
+                  var optionBegin = "<option value="+spuSaleAttrValue.id+">";
+                   var optionEnd = "</option>";
+
+                  options = options+optionBegin+saleAttrValueName+optionEnd;
+
+               });
+               $("#saveSkuInfoBySaleAttr_av").append(spanBegin+saleAttrName+":"+selectBegin+options+selectEnd+spanEnd);
+
+            });
+        });
+
+
+       $("#saveSkuInfoByImgList_av").datagrid({
+
+           url:'spuImgeLists?spuId='+spuId,
+           columns:[[
+               { field:'checkFlag',checkbox:true},
+               {field:'id',title:'文件编号',width:100},
+               {field:'imgName',title:'图片简称',width:100},
+               {field:'imgUrl',title:'图片路径',width:100,
+               formatter:function(value,row,index){
+                   return "<img src="+value+" style='width:100px;height:100px;'/>";
+               }},
+               {field:'isDefault',title:'是否是默认图片',width:100,
+               formatter:function(value,row,index){
+                   var url = row.imgUrl;
+                   return "<input type = 'radio' name = 'isDefault' value ='"+url+"'/>";
+
+               }
+               }
+
+           ]],
+
+       });
+
+    }
+    function reloadSpuList(){
+        var catalogSpu3Id = $("#ctg3ForSpuList").combobox("getValue");
+
+        if(!catalogSpu3Id){
+            catalogSpu3Id = '6';
+        }
+        $('#spulist_dg').datagrid({
+
+            url:'getSpuList?catalogSpu3Id='+catalogSpu3Id
+
+        });
+    }
+
+    function addSpuInfo() {
+
+        initUploader();
+        initSpuImgListDatagrid();
+        $("#spulist_dd").dialog("open");
+
+
+        $('#sellspulistdg_av').datagrid({
+
+            toolbar: [{
+                iconCls: 'icon-add',
+                text: '添加销售属性',
+                id: 'sellAttrBtn',
+                handler: function () {
+                    $('#sellAttr_dd').dialog('open');
+
+
+                }
+            }, '-', {
+                iconCls: 'icon-save',
+                text: '编辑销售属性',
+                handler: function () {
+                    alert('编辑销售属性')
+                }
+            }, '-', {
+                iconCls: 'icon-remove',
+                text: '删除',
+                handler: function () {
+                    alert('删除')
+                }
+            }],
+            columns: [[
+                {field: 'id', title: 'id', width: 130},
+                {field: 'spuId', title: 'spuId', width: 130},
+                {field: 'saleAttrId', title: '销售属性Id', width: 130},
+                {field: 'saleAttrName', title: '销售属性名称', width: 130},
+                {field: 'saleAttrValueS', title: '销售属性暂存值', width: 130}
+
+
+            ]]
+        });
+
+        function initSpuImgListDatagrid() {
+
+
+            $('#spulistdg_av').datagrid({
+
+
+              /*  toolbar: [{
+                    iconCls: 'icon-add',
+                    id: 'spuImgAdd',
+                    text: '添加图片',
+
+                    handler: function () {
+
+                    }
+                }, '-', {
+                    iconCls: 'icon-save',
+                    text: '图片上传',
+                    id: 'spuImgUploadBtn',
+                    handler: function () {
+
+                    }
+                }, '-', {
+                    iconCls: 'icon-remove',
+                    text: '删除',
+                    handler: function () {
+                        alert('删除')
+                    }
+                }],*/
+
+                idField:'id',
+                columns: [[
+                    {field: 'id', title: '文件编号', width: 100},
+                    {field: 'name', title: '图片简称', width: 100},
+                    {field:'imgUrl',title:'图片地址',width:100},
+                    {
+                        field: 'progress', title: '上传进度', width: 100, formatter: function (value, row, index) {
+                        if (!value) {
+                            value = 0;
+                        }
+                        var htmlstr =
+                            "<div class='easyui-progressbar progressbar' style='width:100px;height:20px;' value='" + value + "' text='" + value + "'%>" +
+                            "<div class='progressbar-text'  style='width: 100px; height: 20px; line-height: 20px;'>" + value + "%</div>" +
+                            "<div class='progressbar-value' style='width:" + value + "%; height: 20px; line-height: 20px;'>" +
+                            "<div class='progressbar-text' style='width: 100px; height: 20px; line-height: 20px;'>" + value + "%</div>" +
+                            "</div>" +
+                            "</div>";
+                        return htmlstr;
+                    }
+                    },
+                    {
+                        field: 'zhuangtai', title: '上传状态', width: 100, formatter: function (value, row, index) {
+
+                        if (row.imgUrl != undefined && row.imgUrl != '') {
+                            return '已上传';
+                        } else {
+                            return '等待上传';
+                        }
+                    }
+                    }
+
+
+                ]],
+
+
+                view: detailview,
+                detailFormatter: function (rowIndex, rowData) {
+                    return "<img src=" + rowData.imgUrl + " style='width:100px;height:100px;'>";
+                }
+            });
+
+
+        }
+    }
+
+    function saveSellAttr() {
+    var saleAttrId =$('#sellAttrName').combobox('getValue');
+
+    var saleAttrName = $('#sellAttrName').combobox('getText');
+
+    var saleAttrValueS=$('#sellAttrdg_av').datagrid('getData');
+
+
+    $('#sellAttr_dd').dialog('close');
+
+    $('#sellspulistdg_av').datagrid('appendRow',{
+       id:'',
+       spuId:'',
+        saleAttrId:saleAttrId,
+        saleAttrName:saleAttrName,
+        saleAttrValueS:saleAttrValueS,
+
+
+
+
+    });
+        $('#sellAttrName').combobox('setText',"");
+        $('#sellAttrdg_av').datagrid('loadData',{total:0,rows:[]} );
+    }
+    
+    function saveSpu() {
+        var spuAttrJson = {};
+
+        //spu图片信息
+
+        spuAttrJson["spuName"] = $("#spuName").textbox('getValue');
+
+        spuAttrJson["description"] = $("#description").textbox('getValue');
+
+        var catalogSpu3Id = $("#ctg3ForSpuList").combobox("getValue");
+        if(!catalogSpu3Id){
+            catalogSpu3Id = '6';
+        }
+
+        spuAttrJson["catalog3Id"] = catalogSpu3Id;
+
+
+        var spuImgLists = $("#spulistdg_av").datagrid('getRows');
+        $(spuImgLists).each(function(i,spuImgRow){
+            spuAttrJson["spuImageList["+i+"].imgUrl"] = spuImgRow.imgUrl;
+        });
+
+
+
+
+
+        var rows = $('#sellspulistdg_av').datagrid('getRows');
+        $(rows).each(function(i,row){
+
+            spuAttrJson["spuSaleAttrList["+i+"].saleAttrId"] = row.saleAttrId;
+
+            spuAttrJson["spuSaleAttrList["+i+"].saleAttrName"] = row.saleAttrName;
+
+                var saleAttrValue = row.saleAttrValueS.rows;
+                $(saleAttrValue).each(function(j,SpuSaleAttrValue){
+
+                    alert(SpuSaleAttrValue.saleAttrValueName);
+                    spuAttrJson["spuSaleAttrList["+i+"].spuSaleAttrValueList["+j+"].saleAttrId"] = row.saleAttrId;
+                    spuAttrJson["spuSaleAttrList["+i+"].spuSaleAttrValueList["+j+"].saleAttrValueName"] = SpuSaleAttrValue.saleAttrValueName;
+                });
+        });
+
+        $.post("saveSupAttr",spuAttrJson,function(data){
+            alert(data);
+            $('#spulist_dd').dialog('close');
+        });
+    }
+    function initUploader() {
+
+
+        var spuImgDg=  $("#spulistdg_av");
+        //初始化上传控件
+        var spuImgUploader = WebUploader.create({
+            auto:false,
+            // swf文件路径
+            swf: '/webuploader/Uploader.swf',
+            // 文件接收路径
+            server: '/fileUpload',
+            // 选择文件的按钮。
+            pick: '#spuImgAdd',
+            // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+            resize: false,
+            //设定文件大小上限 2M
+            fileSingleSizeLimit:2*1024*1024,
+            //可接受的文件类型
+            accept: {
+                title: 'Images',
+                extensions: 'gif,jpg,jpeg,bmp,png',
+                mimeTypes: 'image/*'
+            }
+        });
+
+
+        //当用户选择了文件以后，表格要进行增行
+        spuImgUploader.on('fileQueued',function (file) {
+
+            var row={
+                id:file.id,
+                imgName:file.name
+            }
+            spuImgDg.datagrid('appendRow',row);
+        });
+
+
+        //上传过程中，该进度会反复触发
+        spuImgUploader.on( 'uploadProgress', function( file, percentage ) {
+
+            var rowIndex=spuImgDg.datagrid('getRowIndex',file.id);
+
+            var progessRow={progress:(percentage*100).toFixed(2)};
+
+            spuImgDg.datagrid('updateRow', {index:rowIndex,row:progessRow});
+        });
+
+
+        // 上传成功时，要把生成的图片路径返回给表格的行中的url
+
+        spuImgUploader.on( 'uploadSuccess', function( file ,response) {
+
+            var fileId=file.id;
+            var rowIndex = spuImgDg.datagrid('getRowIndex',file.id);//通过file.id查询到行号
+            spuImgDg.datagrid('updateRow',
+                {   index:rowIndex,
+                    row:{imgUrl:response._raw}//fdfs的上传路径
+                });
+        });
+
+
+        $('#spuImgUploadBtn').click(function(){
+
+            if(spuImgUploader.getFiles().length<=0){
+                $.messager().alert('警告','没有需要上传的文件','warning');
+                alert("没有")
+                return;
+            }
+            spuImgUploader.upload();
+        });
+    }
+
+
+</script>
+
+
+</body>
+</html>

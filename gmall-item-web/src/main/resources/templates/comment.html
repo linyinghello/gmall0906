@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+</head>
+<body>
+<div id="comment_dd" class="easyui-dialog" title="编辑评论" style="width:600px;height:600px;"
+     data-options="buttons:'#comment_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+<br/>
+   评论：<input id="comment" class="easyui-textbox"  style="width:500px;height: 100px">
+    <br/><br/>
+
+    <table id="commentImg_dg" class="easyui-datagrid" title="图片列表"
+           data-options="singleSelect:true,method:'get',toolbar:'#comImgTootbar'"></table>
+
+    <div id="comImgTootbar" style="padding:5px;height:auto"  >
+        <div style="margin-bottom:5px">
+            <a href="#" id="comImgAdd" class="easyui-linkbutton" iconCls="icon-add" plain="true">添加图片</a>
+            <a href="#" id="comImgUploadBtn" class="easyui-linkbutton" iconCls="icon-save" plain="true" >图片上传</a>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="comment_bb">
+    <a href="javascript:commentSure();"class="easyui-linkbutton">确定</a>
+    <a  href="#" class="easyui-linkbutton" >取消</a>
+</div>
+
+<div id="rep_dd" class="easyui-dialog" title="回复" style="width:300px;height:250px;"
+     data-options="buttons:'#rep_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+    <br/><br/><br/>
+    内容：<input id="replay" class="easyui-textbox"  style="width:200px;height: 120px">
+    <br/><br/>
+
+</div>
+<div id="rep_bb">
+    <a href="javascript:repSave();"class="easyui-linkbutton">确定</a>
+    <a  href="#" class="easyui-linkbutton" >取消</a>
+</div>
+
+
+<div id="repContinue_dd" class="easyui-dialog" title="回复" style="width:300px;height:250px;"
+     data-options="buttons:'#repContinue_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+    <br/><br/><br/>
+    内容：<input id="repContinue" class="easyui-textbox"  style="width:200px;height: 120px">
+    <br/><br/>
+
+</div>
+<div id="repContinue_bb">
+    <a href="javascript:repContinueSave();"class="easyui-linkbutton">确定</a>
+    <a  href="#" class="easyui-linkbutton" >取消</a>
+</div>
+
+
+<script language="JavaScript">
+
+    function repContinue(comId,repWho,comName1) {
+        $("#repContinue_dd").dialog('open');
+        window.wincomId = comId;
+        window.winrepWho =repWho;
+        window.wincomName = comName1;
+    }
+
+    function repContinueSave(){
+        var repContinueJson = {};
+
+        var replay = $("#repContinue").textbox('getValue');
+        alert(replay);
+        repContinueJson["replay"]= replay;
+        repContinueJson["repWho"] = wincomName;
+        repContinueJson["comName"] = winrepWho;
+        repContinueJson["comId"] = wincomId;
+        $.post("uploadRepaly",repContinueJson,function(data){
+            $("#repContinue_dd").dialog('close');
+            goodsComment();
+        });
+
+    }
+
+    function repThis(comId,comName){
+        $("#rep_dd").dialog('open');
+         window.wincomId = comId;
+
+         window.wincomName = comName;
+
+
+    }
+
+    function repSave() {
+
+        var repJson = {};
+        var replay = $("#replay").textbox('getValue');
+
+        repJson["replay"] = replay;
+
+       repJson["comId"]=wincomId;
+       repJson["repWho"] = wincomName;
+
+       $.post("uploadRepaly",repJson,function(data){
+           $("#rep_dd").dialog('close');
+           goodsComment();
+       });
+    }
+
+    function commentSure(){
+        var imgJson = {};
+
+        var skuId = $("#skuId").attr("value");
+        imgJson["skuId"] = skuId;
+        var ImgUrls = $("#commentImg_dg").datagrid('getRows');
+        imgJson["comName"] = $("#nickName").attr("nickname");
+
+        $(ImgUrls).each(function(i,imgRow){
+            imgJson["comImgList["+i+"].imgUrl"] = imgRow.imgUrl;
+            alert(imgRow.imgUrl);
+        });
+
+     var comment = $("#comment").textbox('getValue');
+     imgJson["comment"] = comment;
+
+     $.post("uploadCommentAndImg",imgJson,function(data){
+         $("#comment_dd").dialog("close");
+         goodsComment();
+
+     });
+
+    }
+
+    function addComment(){
+      initUploader();
+
+
+        $("#commentImg_dg").datagrid({
+            idField:'id',
+            columns:[[
+                {field:'id',title:'Code',width:100},
+                {field: 'name', title: '图片简称', width: 100},
+                {field:'imgUrl',title:'图片地址',width:100},
+                  {
+                       field: 'progress', title: '上传进度', width: 100, formatter: function (value, row, index) {
+                       if (!value) {
+                           value = 0;
+                       }
+                       var htmlstr =
+                           "<div class='easyui-progressbar progressbar' style='width:100px;height:20px;' value='" + value + "' text='" + value + "'%>" +
+                           "<div class='progressbar-text'  style='width: 100px; height: 20px; line-height: 20px;'>" + value + "%</div>" +
+                           "<div class='progressbar-value' style='width:" + value + "%; height: 20px; line-height: 20px;'>" +
+                           "<div class='progressbar-text' style='width: 100px; height: 20px; line-height: 20px;'>" + value + "%</div>" +
+                           "</div>" +
+                           "</div>";
+                       return htmlstr;
+                   }
+                   },
+                   {
+                       field: 'zhuangtai', title: '上传状态', width: 100, formatter: function (value, row, index) {
+
+                       if (row.imgUrl != undefined && row.imgUrl != '') {
+                           return '已上传';
+                       } else {
+                           return '等待上传';
+                       }
+                   }
+                   }
+
+
+            ]],
+
+
+                view: detailview,
+                 detailFormatter: function (rowIndex, rowData) {
+                     return "<img src=" + rowData.imgUrl + " style='width:100px;height:100px;'>";
+                 }
+        });
+        $("#comment_dd").dialog("open");
+    }
+    function initUploader() {
+
+
+        var spuImgDg=  $("#commentImg_dg");
+        //初始化上传控件
+        var spuImgUploader = WebUploader.create({
+            auto:false,
+            // swf文件路径
+            swf: '/webuploader/Uploader.swf',
+            // 文件接收路径
+            server: '/fileUpload',  //这里是对应的handler，与它进行交互
+            // 选择文件的按钮。
+            pick: '#comImgAdd',
+            // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+            resize: false,
+            //设定文件大小上限 2M
+            fileSingleSizeLimit:2*1024*1024,
+            //可接受的文件类型
+            accept: {
+                title: 'Images',
+                extensions: 'gif,jpg,jpeg,bmp,png',
+                mimeTypes: 'image/!*'
+            }
+        });
+
+
+        //当用户选择了文件以后，表格要进行增行
+        spuImgUploader.on('fileQueued',function (file) {
+
+            var row={
+                id:file.id,
+                imgName:file.name
+            }
+            spuImgDg.datagrid('appendRow',row);
+        });
+
+
+        //上传过程中，该进度会反复触发
+        spuImgUploader.on( 'uploadProgress', function( file, percentage ) {
+
+            var rowIndex=spuImgDg.datagrid('getRowIndex',file.id);
+
+            var progessRow={progress:(percentage*100).toFixed(2)}; //这里对应进度那里所在的progress行
+
+            spuImgDg.datagrid('updateRow', {index:rowIndex,row:progessRow});
+        });
+
+
+        // 上传成功时，要把生成的图片路径返回给表格的行中的url
+
+        spuImgUploader.on( 'uploadSuccess', function( file ,response) {
+
+            var fileId=file.id;
+            var rowIndex = spuImgDg.datagrid('getRowIndex',file.id);//通过file.id查询到行号
+            spuImgDg.datagrid('updateRow',
+                {   index:rowIndex,
+                    row:{imgUrl:response._raw}//fdfs的上传路径  这里对应表格中的imgUrl
+                });
+        });
+
+
+        $('#comImgUploadBtn').click(function(){
+
+            if(spuImgUploader.getFiles().length<=0){
+                $.messager().alert('警告','没有需要上传的文件','warning');
+                alert("没有")
+                return;
+            }
+            spuImgUploader.upload();
+        });
+    }
+
+
+function goodsComment(){
+
+        var getAllCommentJson = {};
+        var getComCountJson = {};
+        $.post("getComCount",getComCountJson,function(data){
+
+            $("#comCountId").text("商品评论（"+data+")");
+
+        });
+
+
+
+    var skuId = $("#skuId").attr("value");
+    getAllCommentJson["skuId"] = skuId;
+    getAllCommentJson["pageNo"] = pageNo;
+    $.post("getAllComment",getAllCommentJson,function (pageInfo) {
+        generateUserTable(pageInfo);
+        generateNavigator(pageInfo);
+        console.log(pageInfo);
+
+
+    });
+
+}
+    function generateUserTable(pageInfo) {
+
+        //清除旧的数据
+        $("#addComments").empty();
+
+        //获取list属性对应的数据
+        var list = pageInfo.list;
+
+
+
+        //遍历list
+        for(var i = 0; i < list.length; i++) {
+            var comMain = list[i];
+            var comName = comMain.comName;
+            var comment = comMain.comment;
+            var comId = comMain.comId;
+            var trHTML = "<div style=\"font-size:15px;color: #ec971f\">"+comName+"</div><div style=\"font-size:18px\">"+comment+"</div>";
+            var comImgs = comMain.comImgList;
+
+
+            var comReps = comMain.comRepList;
+
+            for(var j = 0;j<comImgs.length;j++){
+                var comImg = comImgs[j];
+                var imgUrl = comImg.imgUrl;
+                trHTML = trHTML+"<img src='"+imgUrl+"'  style='width:150px;height:150px;' />";
+
+
+            }
+
+            for(var k = 0;k<comReps.length;k++){
+                var comRep = comReps[k];
+                var replay = comRep.replay;
+                var comName1 = comRep.comName;
+                var repWho = comRep.repWho;
+               trHTML = trHTML +"<div>"+comName1+"  "+"<a style=\"font-size:13px;color:#f30213\">回复</a>"+" "+repWho+": "+"<a>"+replay+"</a>"+" "+"<a href=\"javascript:repContinue('"+comId+"','"+repWho+"','"+comName1+"');\"  style=\"font-size:13px;color:#398439\">回复</a>"+"</div>";
+
+            }
+
+            trHTML = trHTML+"<br/>"+"<a href=\"javascript:repThis('"+comId+"','"+comName+"');\" style=\"font-size:13px;color:#f30213\">回复楼主</a>";
+
+            trHTML = trHTML+"<br/><br/><br/>"
+
+
+    /*        var loginacct = user.loginacct;
+            var username = user.username;
+            var email = user.email;
+            var checkBtn = "<a href='assign/role/"+userId+".html' class='btn btn-success btn-xs'><i class=' glyphicon glyphicon-check'></i></a>";
+            var editBtn = "<button id='"+userId+"' type='button' class='btn btn-primary btn-xs editBtn'><i class=' glyphicon glyphicon-pencil'></i></button>";
+            var removeBtn = "<button id='"+userId+"' type='button' class='btn btn-danger btn-xs removeBtn'><i class=' glyphicon glyphicon-remove'></i></button>";
+
+            var trHTML = "<tr><td>"+(i+1)+"</td><td><input id='"+userId+"' class='itemBox' type='checkbox'></td><td>"+loginacct+"</td><td>"+username+"</td><td>"+email+"</td><td>"+checkBtn+" "+editBtn+" "+removeBtn+"</td></tr>";
+*/
+            $("#addComments").append(trHTML);
+        }
+
+    }
+
+    // 初始化页码导航条
+    function generateNavigator(pageInfo) {
+
+        // 获取分页总记录数
+        var totalRecordNo = pageInfo.total;
+
+        // 创建分页
+        $("#Pagination").pagination(totalRecordNo, {
+            num_edge_entries: 3, 				//边缘页数
+            num_display_entries: 4, 			//主体页数
+            callback: pageSelectCallback,		//点击具体页码时调用这个函数
+            items_per_page:pageInfo.pageSize, 	//每页显示1项
+            current_page: (pageInfo.pageNum-1),	//当前页索引，需要将pageInfo.pageNum-1才是合适的值
+            prev_text: "上一页",					//上一页按钮的文本
+            next_text: "下一页",					//下一页按钮的文本
+        });
+    }
+
+    //点击具体页码时调用这个函数
+    function pageSelectCallback(page_index, jq){
+
+        //page_index+1等于要前往的页面的页码
+        window.pageNo = page_index + 1;
+
+
+
+        //调用分页函数
+        goodsComment();
+
+        return false;
+    }
+
+
+</script>
+
+
+</body>
+</html>

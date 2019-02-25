@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface UserInfoService {
     List<UserInfo> getUserInfoList();
+
+    UserInfo getUserInfoByUserId(String userId);
 }

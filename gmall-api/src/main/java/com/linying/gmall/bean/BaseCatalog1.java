@@ -1,10 +1,8 @@
 package com.linying.gmall.bean;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @param
@@ -17,6 +15,17 @@ public class BaseCatalog1 implements Serializable {
     private String id;
     @Column
     private String name;
+
+    @Transient
+    List<BaseCatalog2> baseCatalog2List;
+
+    public List<BaseCatalog2> getBaseCatalog2List() {
+        return baseCatalog2List;
+    }
+
+    public void setBaseCatalog2List(List<BaseCatalog2> baseCatalog2List) {
+        this.baseCatalog2List = baseCatalog2List;
+    }
 
     public String getId() {
         return id;

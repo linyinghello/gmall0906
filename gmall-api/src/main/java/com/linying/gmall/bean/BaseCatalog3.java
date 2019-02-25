@@ -3,6 +3,7 @@ package com.linying.gmall.bean;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @param
@@ -16,6 +17,8 @@ public class BaseCatalog3 implements Serializable {
     private String name;
     @Column
     private String catalog2Id;
+
+
 
     public String getId() {
         return id;

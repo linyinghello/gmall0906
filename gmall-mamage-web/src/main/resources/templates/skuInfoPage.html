@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="skuInfo_dd" class="easyui-dialog" title="编辑销售属性" style="width:700px;height:520px"
+     data-options="buttons:'#skuInfo_bb',closed:true,iconCls:'icon-save',resizable:true,modal:true">
+    <br/><br/>
+    <label>sku名称:</label>
+    <input  id="skuName" name="skuName" class="easyui-textbox" data-options="" style="width:300px;"/>
+    <br/><br/>
+    商品价格：<input id="price" class="easyui-textbox"  style="width:500px"><br/><br/>
+    商品重量（kg）：<input id="weight" class="easyui-textbox"  style="width:500px"><br/><br/>
+    商品规格描述：<input id="skuDesc" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:500px;height:50px">
+
+    <table id="saveSkuInfoByAttr_av" class="easyui-panel" title="平台属性"></table>
+
+    <table id="saveSkuInfoBySaleAttr_av" class="easyui-panel" title="销售属性"></table>
+    <table id="saveSkuInfoByImgList_av" class="easyui-datagrid" title="商品图片列表"></table>
+
+
+
+</div>
+
+<div id="skuInfo_bb">
+    <a href="javascript:saveSkuInfoAttr();"class="easyui-linkbutton">保存</a>
+    <a  href="#" class="easyui-linkbutton" >关闭</a>
+</div>
+
+<script language="JavaScript">
+    function saveSkuInfoAttr() {
+        var skuJson = {};
+        var spuId = $("#spulist_dg").datagrid('getSelected').id;
+        skuJson["spuId"]=spuId;
+
+        var skuName = $("#skuName").textbox('getValue');
+        skuJson["skuName"] = skuName;
+
+        var price = $("#price").textbox('getValue');
+        skuJson["price"] = price;
+
+        var weight = $("#weight").textbox('getValue');
+        skuJson["weight"] = weight;
+
+        var skuDesc = $("#skuDesc").textbox('getValue');
+        skuJson["skuDesc"] = skuDesc;
+
+        var catalogSpu3Id = $("#ctg3ForSpuList").combobox("getValue");
+        if (!catalogSpu3Id) {
+            catalogSpu3Id = '9';
+        }
+
+        skuJson["catalog3Id"] = catalogSpu3Id;
+
+        //获取平台属性的id集合
+        var spans = $("#saveSkuInfoByAttr_av").children("span");
+        $(spans).each(function (i, attr) {
+            var attrId = $(attr).attr("attrId");
+            skuJson["skuAttrValueList[" + i + "].attrId"] = attrId;
+            skuJson["skuAttrValueList[" + i + "].valueId"] = $(attr).children("select").val();
+            skuJson["skuAttrValueList[" + i + "].spuId"] = spuId;
+        });
+
+        //获取销售属性的集合
+
+        var spans = $("#saveSkuInfoBySaleAttr_av").children("span");
+        $(spans).each(function (i, spuSaleAttr) {
+            var spuSaleAttrId = $(spuSaleAttr).attr("spuSaleAttrId");
+            var spuSaleAttrName = $(spuSaleAttr).attr("spuSaleAttrName");
+            skuJson["skuSaleAttrValueList[" + i + "].saleAttrValueId"] = $(spuSaleAttr).children("select").val();
+            skuJson["skuSaleAttrValueList[" + i + "].saleAttrId"] = spuSaleAttrId;
+            skuJson["skuSaleAttrValueList[" + i + "].saleAttrName"] = spuSaleAttrName;
+            skuJson["skuSaleAttrValueList[" + i + "].saleAttrValueName"] = $(spuSaleAttr).children("select").find("option:selected").text();
+        });
+
+        var skuImgs = $("#saveSkuInfoByImgList_av").datagrid('getSelected');
+       var defaultImg = $("input[name = 'isDefault']:checked").val();
+        //var defaultImg = $("#saveSkuInfoByImgList_av").datagrid('getChecked');
+      //  defaultImg = defaultImg.imgUrl;
+
+
+
+        $(skuImgs).each(function (i, skuImg) {
+
+
+           var imgUrl =  skuImg.imgUrl;
+            alert(imgUrl);
+            alert(defaultImg);
+            skuJson["skuImageList[" + i + "].imgUrl"] = imgUrl;
+
+            skuJson["skuImageList[" + i + "].imgName"] = skuImg.imgName;
+
+
+            skuJson["skuImageList[" + i + "].spuImgId"] = skuImg.id;
+
+            if(defaultImg==skuImg.imgUrl){
+                skuJson["skuImageList[" + i + "].isDefault"] = "1";
+            }else{
+                skuJson["skuImageList[" + i + "].isDefault"] = "0";
+            }
+
+
+
+
+        });
+        skuJson["skuDefaultImg"]=defaultImg;
+
+
+        $.post("saveSku",skuJson,function (data) {
+            alert(data);
+        })
+    }
+
+</script>
+
+</body>
+</html>
