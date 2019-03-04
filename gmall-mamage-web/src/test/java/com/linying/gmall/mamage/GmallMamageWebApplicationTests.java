@@ -11,6 +11,7 @@ public class GmallMamageWebApplicationTests {
 
 	@Test
 	public void contextLoads() {
+
 		System.out.println(1);
 	}
 

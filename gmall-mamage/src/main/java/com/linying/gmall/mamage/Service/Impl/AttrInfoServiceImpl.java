@@ -13,6 +13,8 @@ import java.util.List;
 @Service
 public class AttrInfoServiceImpl implements AttrInfoService {
 
+
+
     @Autowired
     private AttrInfoMapper attrInfoMappe;
 
